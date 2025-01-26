@@ -1,0 +1,25 @@
+{
+  "name": "my-web-server",
+  "version": "1.0.0",
+  "description": "A Node.js server for handling file uploads and deployments",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "unzipper": "^0.10.11",
+    "github": "^0.2.0",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  },
+  "engines": {
+    "node": ">=14.x"
+  },
+  "author": "",
+  "license": "ISC"
+}
