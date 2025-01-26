@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <div class="logo">EMMY HENZ TECH</div>
+      <div class="hamburger" onclick="toggleMenu()">☰</div>
+    </div>
+    <nav id="menu">
+      <a href="index.html">Home</a>
+      <a href="premium.html">Premium APKs</a>
+      <a href="vip.html">VIP Courses</a>
+      <a href="hacking.html">Hacking Courses</a>
+      <a href="about.html">About</a>
+      <a href="admin.html">Admin Panel</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Admin Login</h1>
+      <p>Please enter your credentials to access the admin panel.</p>
+    </section>
+
+    <section class="login-container">
+      <form id="login-form" class="login-form">
+        <label for="email">Username:</label>
+        <input type="text" id="email" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" required>
+
+        <button type="submit">Login</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>Powered by EMMY HENZ TEAM</p>
+  </footer>
+
+  <script src="admin.js"></script>
+</body>
+</html>
