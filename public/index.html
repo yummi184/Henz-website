@@ -1,40 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EMMY HENZ TECH</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home Page</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <div class="nav-container">
-            <div class="logo">EMMY HENZ TECH</div>
-            <div class="hamburger" onclick="toggleMenu()">☰</div>
-        </div>
-        <nav id="menu">
-            <a href="index.html">Home</a>
-            <a href="premium.html">Premium APKs</a>
-            <a href="vip.html">VIP Courses</a>
-            <a href="hacking.html">Hacking Courses</a>
-            <a href="about.html">About</a>
-            <a href="admin.html">Admin Panel</a>
-        </nav>
-    </header>
+  <header>
+    <h1>Welcome to the Home Page</h1>
+  </header>
 
-    <main>
-        <section class="hero">
-            <h1>Welcome to EMMY HENZ TECH</h1>
-            <p>Explore the latest hacking tools, premium apps, and exclusive VIP courses.</p>
-        </section>
+  <main>
+    <h2>Our Courses</h2>
+    <div id="course-list">
+      <!-- The courses will be dynamically inserted here from the server -->
+    </div>
+  </main>
 
-        <section id="existing-content"></section>
-    </main>
+  <footer>
+    <p>Powered by EMMY HENZ TEAM</p>
+  </footer>
 
-    <footer>
-        <p>Copyright © 2025 EMMY HENZ TECH</p>
-    </footer>
+  <script>
+    // Fetch courses and display them dynamically
+    function loadCourses() {
+      fetch('/courses/index.html')  // The path to fetch the data from
+        .then(response => response.json())
+        .then(courses => {
+          const courseList = document.getElementById('course-list');
+          courseList.innerHTML = ''; // Clear previous courses
 
-    <script src="script.js"></script>
+          courses.forEach(course => {
+            const courseDiv = document.createElement('div');
+            courseDiv.classList.add('course');
+            courseDiv.innerHTML = `
+              <h3>${course.name}</h3>
+              <p>${course.desc}</p>
+              <img src="/uploads/${course.image}" alt="${course.name}" />
+              <a href="${course.link}" target="_blank">Download</a>
+            `;
+            courseList.appendChild(courseDiv);
+          });
+        })
+        .catch(err => console.log(err));
+    }
+
+    // Load courses on page load
+    document.addEventListener('DOMContentLoaded', loadCourses);
+  </script>
 </body>
-  </html>
+</html>
