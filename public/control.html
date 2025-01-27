@@ -21,7 +21,7 @@
       </select>
 
       <h2>Enter Course Details</h2>
-      <form id="update-form">
+      <form id="update-form" enctype="multipart/form-data">
         <label for="course-name">Course Name:</label>
         <input type="text" id="course-name" required>
 
@@ -37,7 +37,8 @@
         <button type="submit">Update Course</button>
       </form>
 
-      <!-- Removed the localStorage-related button -->
+      <button onclick="clearAllData()">Clear All Data</button>
+
       <h2>Existing Content</h2>
       <div id="existing-content"></div>
     </div>
@@ -47,25 +48,44 @@
   </footer>
 
   <script>
-    // Here you can add JavaScript to handle form submission and page updates
-    // You can send the form data to your server for processing
+    function clearAllData() {
+      // Clears everything from localStorage (we can remove this if you don't need it)
+      localStorage.clear();
+      alert('All data has been cleared!');
+    }
 
-    // Example for handling form submission
-    document.getElementById('update-form').addEventListener('submit', function(e) {
+    // Handling form submission
+    document.getElementById('update-form').addEventListener('submit', function (e) {
       e.preventDefault();
 
+      const page = document.getElementById('page-select').value;
       const courseName = document.getElementById('course-name').value;
       const courseDesc = document.getElementById('course-desc').value;
       const courseImage = document.getElementById('course-image').files[0];
       const downloadLink = document.getElementById('download-link').value;
 
-      // Handle file upload or send data to the server as needed
-      // For example, you can send this data to the backend via an API call (using fetch or XMLHttpRequest)
+      const formData = new FormData();
+      formData.append('course-name', courseName);
+      formData.append('course-desc', courseDesc);
+      formData.append('course-image', courseImage);
+      formData.append('download-link', downloadLink);
+      formData.append('page', page);
 
-      alert('Course updated successfully!');
+      fetch('/update-course', {
+        method: 'POST',
+        body: formData,
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.message); // Show success message
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to update course!');
+      });
     });
   </script>
 
   <script src="admin.js"></script>
 </body>
-  </html>
+</html>
