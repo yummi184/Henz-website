@@ -2,104 +2,112 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const bodyParser = require('body-parser');
-
+const cors = require('cors');
 const app = express();
-const port = process.env.PORT || 3000;
+const port = 1000;
 
-// Middleware
-app.use(bodyParser.urlencoded({ extended: true }));
+// Middleware setup
+app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Set up multer for file uploads
+// Set up file storage for course images
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    cb(null, path.join(__dirname, 'uploads'));
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname));
   },
 });
-const upload = multer({ storage: storage });
 
-// Serve the login page (admin.html)
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin.html'));
+const upload = multer({ storage });
+
+// Ensure the uploads directory exists
+if (!fs.existsSync(path.join(__dirname, 'uploads'))) {
+  fs.mkdirSync(path.join(__dirname, 'uploads'));
+}
+
+// Course data storage (initially empty)
+let courses = [];
+
+// Serve the home page (index.html)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Handle the control panel page (control.html)
-app.get('/control', (req, res) => {
-  res.sendFile(path.join(__dirname, 'control.html'));
+// Serve courses as JSON to index.html
+app.get('/courses/index.html', (req, res) => {
+  res.json(courses);
 });
 
-// Handle form submission to update content
-app.post('/update-course', upload.single('course-image'), (req, res) => {
-  const { courseName, courseDesc, downloadLink, page } = req.body;
+// Admin login route (password-based)
+app.post('/admin/login', (req, res) => {
+  const { password } = req.body;
 
-  if (!courseName || !courseDesc || !downloadLink || !req.file) {
-    return res.status(400).json({ message: 'All fields are required!' });
+  // Check the login password (for simplicity, it's 'admin123')
+  if (password === 'admin123') {
+    res.status(200).send({ message: 'Login successful' });
+  } else {
+    res.status(400).send({ message: 'Incorrect password' });
+  }
+});
+
+// Endpoint to handle course submissions (via control panel)
+app.post('/admin/submit-course', upload.single('course-image'), (req, res) => {
+  const { courseName, courseDesc, downloadLink } = req.body;
+  const courseImage = req.file ? req.file.filename : '';
+
+  // Check if all required fields are provided
+  if (!courseName || !courseDesc || !downloadLink || !courseImage) {
+    return res.status(400).send({ message: 'All fields are required' });
   }
 
-  const courseImage = req.file.filename;
-  const filePath = path.join(__dirname, page);
+  const newCourse = {
+    name: courseName,
+    desc: courseDesc,
+    image: courseImage,
+    link: downloadLink,
+  };
 
-  fs.readFile(filePath, 'utf8', (err, data) => {
-    if (err) {
-      return res.status(500).json({ message: 'Error reading file' });
-    }
+  // Save the course to the courses array
+  courses.push(newCourse);
 
-    // Add course details to the page content
-    const updatedContent = data.replace('</body>', `
-      <div class="course" id="${courseName.replace(/\s+/g, '-').toLowerCase()}">
-        <h2>${courseName}</h2>
-        <p>${courseDesc}</p>
-        <img src="/uploads/${courseImage}" alt="${courseName}" />
-        <a href="${downloadLink}" target="_blank">Download</a>
-        <button onclick="deleteCourse('${courseName}')">Delete</button>
-      </div>
-      </body>
-    `);
-
-    // Write updated content back to the page file
-    fs.writeFile(filePath, updatedContent, 'utf8', (err) => {
-      if (err) {
-        return res.status(500).json({ message: 'Error writing file' });
-      }
-
-      res.json({ message: 'Course updated successfully!' });
-    });
-  });
+  res.status(200).send({ message: 'Course submitted successfully' });
 });
 
-// Endpoint to delete course
-app.post('/delete-course', (req, res) => {
-  const { page, courseName } = req.body;
-  const filePath = path.join(__dirname, page);
+// Endpoint to delete a course (by ID)
+app.delete('/admin/delete-course', (req, res) => {
+  const { courseName } = req.body;
 
-  fs.readFile(filePath, 'utf8', (err, data) => {
-    if (err) {
-      return res.status(500).json({ message: 'Error reading file' });
-    }
+  if (!courseName) {
+    return res.status(400).send({ message: 'Course name is required' });
+  }
 
-    // Remove the course by matching its ID (which is based on the course name)
-    const updatedContent = data.replace(
-      new RegExp(`<div class="course" id="${courseName.replace(/\s+/g, '-').toLowerCase()}">[\\s\\S]*?</div>`),
-      ''
-    );
+  // Remove the course from the courses array
+  courses = courses.filter(course => course.name !== courseName);
 
-    // Write updated content back to the page file
-    fs.writeFile(filePath, updatedContent, 'utf8', (err) => {
-      if (err) {
-        return res.status(500).json({ message: 'Error deleting course' });
-      }
+  res.status(200).send({ message: 'Course deleted successfully' });
+});
 
-      res.json({ message: 'Course deleted successfully!' });
-    });
-  });
+// Serve static HTML pages like index.html, vip.html, etc.
+app.get('/:page', (req, res) => {
+  const page = req.params.page;
+  const validPages = ['index.html', 'vip.html', 'premium.html', 'hacking.html'];
+
+  if (validPages.includes(page)) {
+    res.sendFile(path.join(__dirname, page));
+  } else {
+    res.status(404).send('Page not found');
+  }
+});
+
+// Static page for serving course data to admin control panel
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'control.html'));
 });
 
 // Start the server
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });
